@@ -1,0 +1,61 @@
+# Build directories
+build/
+Debug/
+Release/
+x64/
+x86/
+Win32/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.user
+*.vcxproj.user
+*.vcxproj.filters.user
+
+# Build output and artifacts
+*.obj
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.manifest
+
+# Intermediate files
+*.o
+*.a
+*.so
+*.dylib
+*.out
+
+# IDE and Editor files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.code-workspace
+
+# Dependencies
+vcpkg_installed/
+packages/
+
+# Temp files
+*.tmp
+*.bak
+.#*
+
+# Precompiled headers
+*.pch
+*.gch
+
+# Memory dumps
+*.dmp
+*.stackdump
+
+# CLion
+cmake-build-debug/
+cmake-build-release/
