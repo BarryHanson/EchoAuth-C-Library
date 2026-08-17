@@ -50,10 +50,15 @@ std::string EchoAuthClient::sign_request(const std::string& data) {
 
 LoginResponse EchoAuthClient::login(
     const std::string& username,
-    const std::string& password
+    const std::string& password,
+    const std::string& hwid
 ) {
-    // Build JSON body (simplified)
-    std::string body = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
+    // Build JSON body with HWID for session locking
+    std::string body = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"";
+    if (!hwid.empty()) {
+        body += ",\"hwid\":\"" + hwid + "\"";
+    }
+    body += "}";
 
     try {
         std::string response = http_post("/api/auth/login", body);

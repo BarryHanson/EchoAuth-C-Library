@@ -30,11 +30,13 @@ public:
      * Authenticate with username and password
      * @param username User's username
      * @param password User's password
+     * @param hwid Hardware ID for session locking (optional)
      * @return LoginResponse with token if successful
      */
     LoginResponse login(
         const std::string& username,
-        const std::string& password
+        const std::string& password,
+        const std::string& hwid = ""
     );
 
     /**
