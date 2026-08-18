@@ -365,4 +365,66 @@ bool EchoAuthClient::fetch_api_secret() {
     }
 }
 
+bool EchoAuthClient::check_loader_version(
+    int loader_id,
+    const std::string& current_version,
+    const std::string& filename
+) {
+    try {
+        std::string body = "{\"loaderId\":" + std::to_string(loader_id) +
+                          ",\"currentVersion\":\"" + current_version +
+                          "\",\"filename\":\"" + filename + "\"}";
+
+        std::string response = http_post("/api/client/loader/check-version", body);
+
+        bool is_uptodate = response.find("\"isUpToDate\":false") == std::string::npos;
+        bool filename_match = response.find("\"filenameMatch\":false") == std::string::npos;
+
+        return is_uptodate && filename_match;
+    } catch (...) {
+        return false;
+    }
+}
+
+CheatFileDownloadResponse EchoAuthClient::download_cheat_validated(
+    int cheat_id,
+    const std::string& xor_key
+) {
+    // Download and decrypt cheat in one call
+    // Caller is responsible for PE header validation
+    return download_cheat(cheat_id, xor_key);
+}
+
+bool EchoAuthClient::ban_account(
+    const std::string& username,
+    const std::string& hwid,
+    const std::string& reason
+) {
+    try {
+        std::string body = "{\"username\":\"" + username +
+                          "\",\"hwid\":\"" + hwid +
+                          "\",\"reason\":\"" + reason + "\"}";
+
+        std::string response = http_post("/api/client/ban", body);
+        return response.find("\"status\":\"success\"") != std::string::npos;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool EchoAuthClient::log_event(
+    const std::string& message,
+    const std::string& level
+) {
+    try {
+        std::string body = "{\"message\":\"" + message +
+                          "\",\"level\":\"" + level + "\"}";
+
+        std::string response = http_post("/api/client/submit-log", body);
+        return response.find("\"status\":\"success\"") != std::string::npos;
+    } catch (...) {
+        return false;
+    }
+}
+
 } // namespace echoauth

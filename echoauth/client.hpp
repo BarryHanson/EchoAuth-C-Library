@@ -107,6 +107,56 @@ public:
      */
     bool fetch_api_secret();
 
+    // ===== Loader Convenience Methods =====
+
+    /**
+     * Check loader version and filename validity
+     * @param loader_id ID of the loader application
+     * @param current_version Version string (e.g., "1.0.0")
+     * @param filename Expected loader filename
+     * @return true if loader is up-to-date and filename matches
+     */
+    bool check_loader_version(
+        int loader_id,
+        const std::string& current_version,
+        const std::string& filename
+    );
+
+    /**
+     * Download cheat and validate PE header in one call
+     * @param cheat_id ID of the cheat to download
+     * @param xor_key XOR decryption key
+     * @return CheatFileDownloadResponse (already decrypted and validated)
+     */
+    CheatFileDownloadResponse download_cheat_validated(
+        int cheat_id,
+        const std::string& xor_key
+    );
+
+    /**
+     * Ban a user account (send ban request to API)
+     * @param username Username of account to ban
+     * @param hwid Hardware ID associated with account
+     * @param reason Reason for ban (e.g., "Debugger detected")
+     * @return true if ban request sent successfully
+     */
+    bool ban_account(
+        const std::string& username,
+        const std::string& hwid,
+        const std::string& reason
+    );
+
+    /**
+     * Submit log event to API
+     * @param message Log message
+     * @param level Log level (e.g., "critical", "warning", "info")
+     * @return true if log submitted successfully
+     */
+    bool log_event(
+        const std::string& message,
+        const std::string& level
+    );
+
     /**
      * Make HTTP GET request
      */
