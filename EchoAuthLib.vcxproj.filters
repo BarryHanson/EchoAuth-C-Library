@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="client.cpp" />
+    <ClCompile Include="crypto.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="EchoAuth">
+      <UniqueIdentifier>{fcdc07f3-6f63-4c8f-92db-dedc21c93d38}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="echoauth\client.hpp">
+      <Filter>EchoAuth</Filter>
+    </ClInclude>
+    <ClInclude Include="echoauth\crypto.hpp">
+      <Filter>EchoAuth</Filter>
+    </ClInclude>
+    <ClInclude Include="echoauth\exceptions.hpp">
+      <Filter>EchoAuth</Filter>
+    </ClInclude>
+    <ClInclude Include="echoauth\response.hpp">
+      <Filter>EchoAuth</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

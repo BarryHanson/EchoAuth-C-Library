@@ -67,14 +67,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\echoauth\client.hpp" />
-    <ClInclude Include="..\include\echoauth\crypto.hpp" />
-    <ClInclude Include="..\include\echoauth\exceptions.hpp" />
-    <ClInclude Include="..\include\echoauth\response.hpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="client.cpp" />
     <ClCompile Include="crypto.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="echoauth\client.hpp" />
+    <ClInclude Include="echoauth\crypto.hpp" />
+    <ClInclude Include="echoauth\exceptions.hpp" />
+    <ClInclude Include="echoauth\response.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

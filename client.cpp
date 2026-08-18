@@ -82,7 +82,9 @@ LoginResponse EchoAuthClient::login(
             if (msg_pos != std::string::npos) {
                 msg_pos += 11;
                 size_t msg_end = response.find("\"", msg_pos);
-                login_resp.message = response.substr(msg_pos, msg_end - msg_pos);
+                if (msg_end != std::string::npos) {
+                    login_resp.message = response.substr(msg_pos, msg_end - msg_pos);
+                }
             }
         }
 
