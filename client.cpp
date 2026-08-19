@@ -3,9 +3,14 @@
 #include "echoauth/exceptions.hpp"
 #include <windows.h>
 #include <wininet.h>
+#include <wincrypt.h>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 #include <algorithm>
 
 #pragma comment(lib, "wininet.lib")
+#pragma comment(lib, "advapi32.lib")
 
 namespace echoauth {
 
@@ -133,10 +138,6 @@ CheatFileDownloadResponse EchoAuthClient::download_cheat(
                 response.file_data = Crypto::base64_decode(base64_data);
             }
         }
-
-        // XOR encrypt the file data before returning
-        auto encrypted = Crypto::xor_encrypt(response.file_data, xor_key);
-        response.file_data = encrypted;
 
         response.success = !response.file_data.empty();
         return response;
@@ -423,6 +424,138 @@ bool EchoAuthClient::log_event(
         std::string response = http_post("/api/client/submit-log", body);
         return response.find("\"status\":\"success\"") != std::string::npos;
     } catch (...) {
+        return false;
+    }
+}
+
+std::string EchoAuthClient::calculate_current_hash() {
+    HCRYPTPROV hProv = NULL;
+    HCRYPTHASH hHash = NULL;
+    HANDLE hFile = NULL;
+    std::string hash_result;
+
+    try {
+        // Get current executable path
+        char buffer[MAX_PATH];
+        if (!GetModuleFileNameA(NULL, buffer, MAX_PATH)) {
+            return "";
+        }
+        std::string exe_path(buffer);
+
+        // Open file for reading
+        hFile = CreateFileA(exe_path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            return "";
+        }
+
+        // Acquire cryptographic provider
+        if (!CryptAcquireContextA(&hProv, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
+            return "";
+        }
+
+        // Create hash object
+        if (!CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash)) {
+            return "";
+        }
+
+        // Read file in chunks and hash
+        const DWORD CHUNK_SIZE = 65536;
+        BYTE buffer_data[CHUNK_SIZE];
+        DWORD bytes_read;
+
+        while (ReadFile(hFile, buffer_data, CHUNK_SIZE, &bytes_read, NULL) && bytes_read > 0) {
+            if (!CryptHashData(hHash, buffer_data, bytes_read, 0)) {
+                return "";
+            }
+        }
+
+        // Get hash value
+        BYTE hash_buffer[32];
+        DWORD hash_len = 32;
+
+        if (!CryptGetHashParam(hHash, 2, hash_buffer, &hash_len, 0)) {
+            return "";
+        }
+
+        // Convert to hex string
+        std::stringstream ss;
+        for (DWORD i = 0; i < hash_len; i++) {
+            ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(hash_buffer[i]);
+        }
+        hash_result = ss.str();
+
+    } catch (...) {
+        hash_result = "";
+    }
+
+    // Cleanup
+    if (hHash) CryptDestroyHash(hHash);
+    if (hProv) CryptReleaseContext(hProv, 0);
+    if (hFile && hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+
+    return hash_result;
+}
+
+std::string EchoAuthClient::get_loader_hash_info(int loader_id) {
+    try {
+        std::string endpoint = "/api/client/loader/hash-info/" + std::to_string(loader_id);
+        return http_get(endpoint);
+    } catch (...) {
+        return "";
+    }
+}
+
+bool EchoAuthClient::verify_loader_hash(int loader_id) {
+    try {
+        // Get loader info from server
+        std::string loader_info = get_loader_hash_info(loader_id);
+        if (loader_info.empty()) {
+            return false;
+        }
+
+
+        // Check if hash verification is enforced
+        if (loader_info.find("\"enforceHashVerification\":false") != std::string::npos) {
+            return true; // Hash verification not enforced, pass
+        }
+
+        // Extract expected hash from response
+        size_t hash_pos = loader_info.find("\"loaderHash\":\"");
+        if (hash_pos == std::string::npos) {
+            return false; // No hash configured
+        }
+
+        hash_pos += 14; // strlen("\"loaderHash\":\"")
+        size_t hash_end = loader_info.find("\"", hash_pos);
+        if (hash_end == std::string::npos) {
+            return false;
+        }
+
+        std::string expected_hash = loader_info.substr(hash_pos, hash_end - hash_pos);
+        if (expected_hash.empty()) {
+            return false; // No hash configured
+        }
+
+
+        // Calculate current hash
+        std::string current_hash = calculate_current_hash();
+        if (current_hash.empty()) {
+            return false; // Failed to calculate hash
+        }
+
+
+        // Compare (case-insensitive for hex)
+        std::string lower_current(current_hash);
+        std::string lower_expected(expected_hash);
+
+        std::transform(lower_current.begin(), lower_current.end(), lower_current.begin(), ::tolower);
+        std::transform(lower_expected.begin(), lower_expected.end(), lower_expected.begin(), ::tolower);
+
+        bool match = lower_current == lower_expected;
+
+        return match;
+
+    } catch (const std::exception& e) {
         return false;
     }
 }
